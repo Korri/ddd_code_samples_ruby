@@ -1,6 +1,7 @@
 require 'securerandom'
 
 require_relative './product'
+require_relative './claim'
 
 class Contract
   attr_reader   :id # unique id
@@ -21,6 +22,21 @@ class Contract
     @status             = "PENDING"
     @covered_product    = covered_product
     @claims             = Array.new
+  end
+
+  # We should move this to the contract class
+  # Should the limit of liability be calculated pre-claim
+  # Magic number = 0.8 - 80%? of the contract purchase price? covered product purchase price?
+  # contract lifecycle - dates and status
+  def limit_of_liability
+    claim_total = claims.sum(&:amount)
+    (purchase_price - claim_total) * 0.8
+  end
+
+  def active?(date)
+    date  >= effective_date &&
+    date  <= expiration_date &&
+    status == "ACTIVE"
   end
 
   # Equality for entities is based on unique id
